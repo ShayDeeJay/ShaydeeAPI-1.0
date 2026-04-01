@@ -1,5 +1,6 @@
 {
   "itemGroup.shaydeeapi": "Example Mod Tab",
   "block.shaydeeapi.example_block": "Example Block",
-  "item.shaydeeapi.example_item": "Example Item"
+  "item.shaydeeapi.example_item": "Example Item",
+  "text.shaydeeapi.hold_details": "Hold %s For Details"
 }

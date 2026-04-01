@@ -54,11 +54,11 @@ public object ItemHelpers {
     }
 
     @JvmStatic
-    public fun durabilityDamageCount(itemStack: ItemStack): Int {
-        val maxDamage = itemStack.get(DataComponents.MAX_DAMAGE)
-        val damageTaken = itemStack.get(DataComponents.DAMAGE)
-        if (maxDamage != null && damageTaken != null) maxDamage - damageTaken
-        return 0
+    public fun ItemStack.durabilityDamageCount(): Int {
+        val maxDamage = this.get(DataComponents.MAX_DAMAGE) ?: return 0
+        val damageTaken = this.get(DataComponents.DAMAGE) ?: return 0
+
+        return maxDamage - damageTaken
     }
 
     @JvmStatic

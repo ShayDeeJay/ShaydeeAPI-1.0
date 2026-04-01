@@ -50,6 +50,21 @@ public object MathHelpers {
     }
 
     @JvmStatic
+    public fun Double.roundToString(): String {
+        return roundNonWholeString(this)
+    }
+
+    @JvmStatic
+    public fun Double.formatSingleString(): String {
+        return roundNonWholeString(singleFormattedDouble(this))
+    }
+
+    @JvmStatic
+    public fun Double.formatDoubleString(): String {
+        return roundNonWholeString(doubleFormattedDouble(this))
+    }
+
+    @JvmStatic
     public fun roundNonWholeString(number: Double): String {
         val decimalPart = number - number.toInt()
         if (decimalPart == 0.0) return number.roundToInt().toString()
@@ -61,8 +76,18 @@ public object MathHelpers {
         if (percentageChance == 0) return false
         require(percentageChance in 0..100) { "Percentage chance must be between 0 and 100." }
 
-        val randomValue = Random.Default.nextInt(100) + 1
+        val randomValue = Random.nextInt(100) + 1
         return randomValue <= percentageChance
+    }
+
+    @JvmStatic
+    public fun percentageChance(percentageChance: Number, doOnChance : () -> Unit) {
+        val chance = percentageChance.toDouble()
+
+        if (chance <= 0.0) return
+        require(chance <= 100.0) { "Percentage chance must be between 0 and 100." }
+        
+        if ( Random.nextDouble(0.0, 100.0) < chance) doOnChance()
     }
 
     @JvmStatic
@@ -70,7 +95,7 @@ public object MathHelpers {
         if (percentageChance <= 0) return false
         require(percentageChance <= 100) { "Percentage chance must be between 0 and 100." }
 
-        val randomValue = Random.Default.nextDouble(100.0) + 1
+        val randomValue = Random.nextDouble(100.0) + 1
         return randomValue <= percentageChance
     }
 
@@ -99,6 +124,24 @@ public object MathHelpers {
         if (max == 0.0) return 100.0
         if (max <= 0) return 0.0
         return FORMAT.format((1.0 / max) * 100).toDouble()
+    }
+
+    @JvmStatic
+    public fun Int.toRoman(): String {
+        if (this <= 0) return "0"
+        val map = linkedMapOf(
+            50 to "L", 40 to "XL", 10 to "X", 9 to "IX",
+            5 to "V", 4 to "IV", 1 to "I"
+        )
+        var num = this
+        val res = StringBuilder()
+        for ((value, roman) in map) {
+            while (num >= value) {
+                res.append(roman)
+                num -= value
+            }
+        }
+        return res.toString()
     }
 
     @JvmStatic

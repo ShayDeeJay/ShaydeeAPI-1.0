@@ -6,6 +6,7 @@ import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.codec.StreamCodec
+import net.neoforged.neoforge.registries.DeferredHolder
 import net.neoforged.neoforge.registries.DeferredRegister
 import org.shaydee.shaydeeapi.ShaydeeAPI
 import org.shaydee.shaydeeapi.particle.GenericParticleOption
@@ -42,11 +43,11 @@ public object ShaydeeAPIReg {
     register("generic_move", Companion.MAP_CODEC, Companion.STREAM_CODEC)
 
 
-    private fun <T : ParticleOptions> register(
+    public fun <T : ParticleOptions> register(
         pKey: String,
         pCodecFactory: MapCodec<T>,
         streamCodec: StreamCodec<in ByteBuf, T>
-    ) = PARTICLE_REGISTRY.register(pKey) { ->
+    ): DeferredHolder<ParticleType<*>, out ParticleType<T>> = PARTICLE_REGISTRY.register(pKey) { ->
         object : ParticleType<T>(true) {
             public override fun codec(): MapCodec<T> = pCodecFactory
 

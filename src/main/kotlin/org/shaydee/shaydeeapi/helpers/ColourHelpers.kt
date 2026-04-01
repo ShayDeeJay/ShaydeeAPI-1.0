@@ -73,7 +73,7 @@ public object ColourHelpers {
     @JvmStatic public var goldCoin: Int = FastColor.ARGB32.color(225, 155, 50)
         private set
 
-    @JvmStatic public var platinumCoin: Int = FastColor.ARGB32.color(194, 194, 194)
+    @JvmStatic public var platinumCoin: Int = FastColor.ARGB32.color(228, 228, 228)
         private set
 
     @JvmStatic public var diamondBox: Int = FastColor.ARGB32.color(135, 222, 222)

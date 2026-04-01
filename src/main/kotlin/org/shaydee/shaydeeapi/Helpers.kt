@@ -2,15 +2,18 @@ package org.shaydee.shaydeeapi
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Holder
 import net.minecraft.nbt.DoubleTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.ai.attributes.Attribute
 import net.minecraft.world.entity.ai.attributes.AttributeModifier
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import kotlin.math.cos
@@ -22,11 +25,17 @@ public object Helpers {
     @JvmStatic
     public fun <T> listRandom(collection: MutableList<T>): T = collection.random()
 
-    public fun getAttributeValue(player: Player, attribute: Holder<Attribute?>): Double =
-        player.getAttribute(attribute)?.value ?: -1.0
+    public fun Level.sLevel() : ServerLevel? =
+        this as? ServerLevel
+
+    public fun Level.cLevel() : ClientLevel? =
+        this as? ClientLevel
 
     public fun res(location: String, modId: String): ResourceLocation =
         ResourceLocation.fromNamespaceAndPath(modId, location)
+
+    public fun getAttributeValue(player: Player, attribute: Holder<Attribute?>): Double =
+        player.getAttribute(attribute)?.value ?: -1.0
 
     @JvmStatic
     public fun nbtDoubleList(vararg pNumbers: Double): ListTag {

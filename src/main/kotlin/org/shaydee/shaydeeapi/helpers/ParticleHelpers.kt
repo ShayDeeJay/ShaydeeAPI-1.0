@@ -5,15 +5,14 @@ import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 import org.shaydee.shaydeeapi.particle.GenericParticleOption
 import org.shaydee.shaydeeapi.particle.ParticleStore
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.random.Random
 
 public object ParticleHelpers {
@@ -23,9 +22,9 @@ public object ParticleHelpers {
         lifetime: Int,
         size: Float,
         colourPrimary: Int,
-        colourSecondary: Int
+        colourSecondary: Int,
     ): GenericParticleOption = GenericParticleOption(
-        ParticleStore.Companion.MAGIC_PARTICLE,
+        ParticleStore.MAGIC_PARTICLE,
         colourPrimary,
         colourSecondary,
         lifetime,
@@ -42,7 +41,7 @@ public object ParticleHelpers {
         lifetime: Int,
         size: Float,
         staticSize: Boolean,
-        speed: Double
+        speed: Double,
     ): GenericParticleOption = GenericParticleOption(
         particleType,
         colourPrimary,
@@ -59,7 +58,7 @@ public object ParticleHelpers {
         lifetime: Int,
         size: Float,
         colourPrimary: Int,
-        colourSecondary: Int
+        colourSecondary: Int,
     ): GenericParticleOption = GenericParticleOption(
         particleType,
         colourPrimary,
@@ -77,7 +76,7 @@ public object ParticleHelpers {
         size: Float,
         colourPrimary: Int,
         colourSecondary: Int,
-        setStaticSize: Boolean
+        setStaticSize: Boolean,
     ): GenericParticleOption = GenericParticleOption(
         particleType,
         colourPrimary,
@@ -97,7 +96,7 @@ public object ParticleHelpers {
         x: Double,
         y: Double,
         z: Double,
-        speed: Float
+        speed: Float,
     ) {
         repeat(10) {
             sendParticles(world, particleOptions, pos, particleCount, x, y, z, speed.toDouble())
@@ -114,7 +113,7 @@ public object ParticleHelpers {
         y: Double,
         z: Double,
         speed: Float,
-        totalPoofs: Int
+        totalPoofs: Int,
     ) {
         repeat(totalPoofs) {
             sendParticles(world, particleOptions, pos, particleCount, x, y, z, speed.toDouble())
@@ -128,7 +127,7 @@ public object ParticleHelpers {
         particleOptions: ParticleOptions,
         bound1: Double,
         bound2: Double,
-        speed: Int
+        speed: Int,
     ) {
         repeat(3) {
             sendParticles(
@@ -137,7 +136,7 @@ public object ParticleHelpers {
                 loc,
                 0,
                 0.0,
-                Random.Default.nextDouble(bound1, bound2),
+                Random.nextDouble(bound1, bound2),
                 0.0,
                 speed.toDouble()
             )
@@ -149,12 +148,13 @@ public object ParticleHelpers {
         colour1: Int,
         colour2: Int,
         lifetime: Int,
-        size: Float
+        size: Float,
+        speed: Double = 1.0,
     ): ParticleOptions {
-        val generic = genericParticle(ParticleStore.Companion.GENERIC_PARTICLE, colour1, colour2, lifetime, size, false, 1.0)
-        val magic = genericParticle(ParticleStore.Companion.MAGIC_PARTICLE, colour1, colour2, lifetime, size, false, 1.0)
-        val soft = genericParticle(ParticleStore.Companion.SOFT_PARTICLE, colour1, colour2, lifetime, size, false, 1.0)
-        val square = genericParticle(ParticleStore.Companion.SQUARE_PARTICLE, colour1, colour2, lifetime, size, false, 1.0)
+        val generic = genericParticle(ParticleStore.GENERIC_PARTICLE, colour1, colour2, lifetime, size, false, speed)
+        val magic = genericParticle(ParticleStore.MAGIC_PARTICLE, colour1, colour2, lifetime, size, false, speed)
+        val soft = genericParticle(ParticleStore.SOFT_PARTICLE, colour1, colour2, lifetime, size, false, speed)
+        val square = genericParticle(ParticleStore.SQUARE_PARTICLE, colour1, colour2, lifetime, size, false, speed)
 
         val collectTypes = listOf(generic, magic, soft, square)
         return collectTypes.random()
@@ -165,17 +165,26 @@ public object ParticleHelpers {
         world: Level,
         pos: Vec3,
         particleCount: Int,
-        particleOptions: ParticleOptions
+        particleOptions: ParticleOptions,
     ) {
         repeat(5) {
             sendParticles(
                 world, particleOptions, pos, particleCount,
-                (Random.Default.nextFloat() - 0.5) / 3,
-                (Random.Default.nextFloat() - 0.5) / 3,
-                (Random.Default.nextFloat() - 0.5) / 3,
+                (Random.nextFloat() - 0.5) / 3,
+                (Random.nextFloat() - 0.5) / 3,
+                (Random.nextFloat() - 0.5) / 3,
                 0.1
             )
         }
+    }
+
+    public fun getRandomParticleVelocity(speed: Double): Vec3 {
+        val theta: Double = Random.nextDouble() * 2 * Math.PI
+        val phi: Double = Random.nextDouble() * Math.PI
+        val x = sin(phi) * cos(theta)
+        val y = cos(phi)
+        val z = sin(phi) * sin(theta)
+        return Vec3(x, y, z).normalize().scale(speed)
     }
 
     @JvmStatic
@@ -184,14 +193,14 @@ public object ParticleHelpers {
         pos: Vec3,
         particleCount: Int,
         particleOptions: ParticleOptions,
-        speed: Float
+        speed: Float,
     ) {
         repeat(5) {
             sendParticles(
                 world, particleOptions, pos, particleCount,
-                (Random.Default.nextFloat() - 0.5) / 3,
-                (Random.Default.nextFloat() - 0.5) / 3,
-                (Random.Default.nextFloat() - 0.5) / 3,
+                (Random.nextFloat() - 0.5) / 3,
+                (Random.nextFloat() - 0.5) / 3,
+                (Random.nextFloat() - 0.5) / 3,
                 speed.toDouble()
             )
         }
@@ -203,15 +212,15 @@ public object ParticleHelpers {
         pos: Vec3,
         particleCount: Int,
         particleOptions: ParticleOptions,
-        speed: Float
+        speed: Float,
     ) {
         repeat(2) {
             val spread = 0.2
             sendParticles(
                 world, particleOptions, pos, particleCount,
-                (Random.Default.nextFloat() - spread) / 3,
-                (Random.Default.nextFloat() - spread) / 3,
-                (Random.Default.nextFloat() - spread) / 3,
+                (Random.nextFloat() - spread) / 3,
+                (Random.nextFloat() - spread) / 3,
+                (Random.nextFloat() - spread) / 3,
                 speed.toDouble()
             )
         }
@@ -226,9 +235,8 @@ public object ParticleHelpers {
         xOff: Double,
         yOff: Double,
         zOff: Double,
-        speed: Double
+        speed: Double,
     ): Int {
-        println(level)
         if (level is ServerLevel) {
             val packet = ClientboundLevelParticlesPacket(
                 type,
@@ -261,7 +269,7 @@ public object ParticleHelpers {
         posX: Double,
         posY: Double,
         posZ: Double,
-        packet: Packet<*>
+        packet: Packet<*>,
     ): Boolean {
         if (player.level().isClientSide) return false
         val blockPos = player.blockPosition()
@@ -278,16 +286,16 @@ public object ParticleHelpers {
         particleType: ParticleOptions,
         count: Int,
         livingEntity: LivingEntity,
-        speed: Double
+        speed: Double,
     ) {
         repeat(count) {
-            val offsetX = (Random.Default.nextDouble() - 0.5) * livingEntity.bbWidth
-            val offsetY = Random.Default.nextDouble() * livingEntity.bbHeight
-            val offsetZ = (Random.Default.nextDouble() - 0.5) * livingEntity.bbWidth
+            val offsetX = (Random.nextDouble() - 0.5) * livingEntity.bbWidth
+            val offsetY = Random.nextDouble() * livingEntity.bbHeight
+            val offsetZ = (Random.nextDouble() - 0.5) * livingEntity.bbWidth
 
-            val speedX = (Random.Default.nextDouble() - 0.5) * 0.1
-            val speedY = (Random.Default.nextDouble() - 0.5) * 0.1
-            val speedZ = (Random.Default.nextDouble() - 0.5) * 0.1
+            val speedX = (Random.nextDouble() - 0.5) * 0.1
+            val speedY = (Random.nextDouble() - 0.5) * 0.1
+            val speedZ = (Random.nextDouble() - 0.5) * 0.1
 
             sendParticles(level, particleType, position.add(offsetX, offsetY, offsetZ), 1, speedX, speedY, speedZ, speed)
         }
@@ -301,16 +309,16 @@ public object ParticleHelpers {
         count: Int,
         livingEntity: LivingEntity,
         speed: Double,
-        ySpeed: Double
+        ySpeed: Double,
     ) {
         repeat(count) {
-            val offsetX = (Random.Default.nextDouble() - 0.5) * livingEntity.bbWidth
-            val offsetY = Random.Default.nextDouble() * livingEntity.bbHeight
-            val offsetZ = (Random.Default.nextDouble() - 0.5) * livingEntity.bbWidth
+            val offsetX = (Random.nextDouble() - 0.5) * livingEntity.bbWidth
+            val offsetY = Random.nextDouble() * livingEntity.bbHeight
+            val offsetZ = (Random.nextDouble() - 0.5) * livingEntity.bbWidth
 
-            val speedX = (Random.Default.nextDouble() - 0.5) * 0.1
-            val speedY = (Random.Default.nextDouble() - 0.5) * 0.1
-            val speedZ = (Random.Default.nextDouble() - 0.5) * 0.1
+            val speedX = (Random.nextDouble() - 0.5) * 0.1
+            val speedY = (Random.nextDouble() - 0.5) * 0.1
+            val speedZ = (Random.nextDouble() - 0.5) * 0.1
 
             sendParticles(level, particleType, position.add(offsetX, offsetY, offsetZ), 1, speedX, speedY + ySpeed, speedZ, speed)
         }
@@ -322,7 +330,7 @@ public object ParticleHelpers {
         projectile: Projectile,
         getX: Double,
         getY: Double,
-        getZ: Double
+        getZ: Double,
     ) {
         val deltaX = getX - projectile.xOld
         val deltaY = getY - projectile.yOld
@@ -341,9 +349,9 @@ public object ParticleHelpers {
                 particleOptions,
                 position,
                 1,
-                0.0125f * (Random.Default.nextFloat() - 0.5),
-                0.0125f * (Random.Default.nextFloat() - 0.5),
-                0.0125f * (Random.Default.nextFloat() - 0.5),
+                0.0125f * (Random.nextFloat() - 0.5),
+                0.0125f * (Random.nextFloat() - 0.5),
+                0.0125f * (Random.nextFloat() - 0.5),
                 0.0
             )
         }
@@ -356,7 +364,7 @@ public object ParticleHelpers {
         getX: Double,
         getY: Double,
         getZ: Double,
-        speed: Double
+        speed: Double,
     ) {
         val deltaX = getX - projectile.xOld
         val deltaY = getY - projectile.yOld
@@ -374,9 +382,9 @@ public object ParticleHelpers {
                 particleOptions,
                 position,
                 2,
-                0.0125f * (Random.Default.nextFloat() - 0.5),
-                0.0125f * (Random.Default.nextFloat() - 0.5),
-                0.0125f * (Random.Default.nextFloat() - 0.5),
+                0.0125f * (Random.nextFloat() - 0.5),
+                0.0125f * (Random.nextFloat() - 0.5),
+                0.0125f * (Random.nextFloat() - 0.5),
                 speed
             )
         }
@@ -387,7 +395,7 @@ public object ParticleHelpers {
         particleOptions: ParticleOptions,
         projectile: Projectile,
         multiplier: Int,
-        speed: Double
+        speed: Double,
     ) {
         val deltaX = projectile.x - projectile.xOld
         val deltaY = projectile.y - projectile.yOld
@@ -407,9 +415,9 @@ public object ParticleHelpers {
                     particleOptions,
                     position,
                     1,
-                    0.0125f * (Random.Default.nextFloat() - 0.5),
-                    0.0125f * (Random.Default.nextFloat() - 0.5),
-                    0.0125f * (Random.Default.nextFloat() - 0.5),
+                    0.0125f * (Random.nextFloat() - 0.5),
+                    0.0125f * (Random.nextFloat() - 0.5),
+                    0.0125f * (Random.nextFloat() - 0.5),
                     speed
                 )
             }
@@ -421,7 +429,7 @@ public object ParticleHelpers {
         projectile: Projectile,
         particleMain: ParticleOptions,
         particleTrail: ParticleOptions,
-        speed: Double
+        speed: Double,
     ) {
         if (projectile.tickCount > 1) {
             val directionX = projectile.x - projectile.xOld
