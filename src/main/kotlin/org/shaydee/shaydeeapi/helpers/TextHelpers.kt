@@ -9,9 +9,24 @@ import org.openjdk.nashorn.tools.ShellFunctions.input
 import org.shaydee.shaydeeapi.helpers.ColourHelpers.getRgb
 import org.shaydee.shaydeeapi.helpers.ColourHelpers.headerColour
 import org.shaydee.shaydeeapi.helpers.ColourHelpers.subHeaderColour
+import org.shaydee.shaydeeapi.helpers.TextHelpers.withStyleComponentTrans
 import java.util.*
 
 public object TextHelpers {
+
+    @JvmStatic
+    public fun MutableList<Component>.spacer(): Boolean = this.add(Component.literal(" "))
+
+    @JvmStatic
+    public fun MutableComponent.spacer(): MutableComponent = this.append(" ")
+
+    @JvmStatic
+    public fun String.translatable(): String = Component.translatable(this).string
+
+    @JvmStatic
+    public fun String.withStyle(colour: Int = -1, bold: Boolean = false, underline: Boolean = false, strike: Boolean = false){
+        withStyleComponentTrans(this.translatable(), colour, bold, underline, strike)
+    }
 
     @JvmStatic
     public fun nameToId(input: String): String =
@@ -22,31 +37,10 @@ public object TextHelpers {
     public fun String.nameToId(): String =
         this.split(" ").joinToString("_") { it.lowercase() }
 
-    @JvmStatic
-    @JvmOverloads
-    public fun withStyleComponent(text: String, colour: Int, bold: Boolean = false, underline: Boolean = false): Component =
-        Component.literal(text).withStyle {
-            it.withColor(colour)
-                .withBold(bold)
-                .withUnderlined(underline)
-        }
 
     @JvmStatic
     public fun withStyleComponentTrans(text: String, colour: Int, vararg args: Any?): Component =
-        Component.translatable(text, *args).withStyle { it.withColor(colour) }
-
-    @JvmStatic
-    public fun MutableList<Component>.spacer(){
-        this.add(Component.literal(" "))
-    }
-
-    @JvmStatic
-    public fun MutableComponent.spacer(){
-        this.append(" ")
-    }
-
-    @JvmStatic
-    public fun String.translatable(): String = Component.translatable(this).string
+        Component.translatable(text, *args).withStyle { it.withColor(colour)}
 
     @JvmStatic
     public fun playDebugMessage(player: Player, string: String): Unit =
@@ -59,6 +53,24 @@ public object TextHelpers {
         info.forEach {
             player.sendSystemMessage(withStyleComponentTrans(it, getRgb()))
         }
+
+    @JvmStatic
+    @JvmOverloads
+    public fun withStyleComponent(text: String, colour: Int, bold: Boolean = false, underline: Boolean = false, strike: Boolean = false): Component =
+        Component.literal(text).withStyle {
+            it.withColor(colour)
+                .withBold(bold)
+                .withUnderlined(underline)
+                .withStrikethrough(strike)
+        }
+
+    @JvmStatic
+    public fun stringIdToName(input: String): String =
+        input.split("_").joinToString(" ") {
+                name -> name.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+        }
+    }
 
     @JvmStatic
     @JvmOverloads
@@ -89,14 +101,5 @@ public object TextHelpers {
 
         return withStyleComponentTrans(prefix, prefixColour, new)
     }
-
-
-    @JvmStatic
-    public fun stringIdToName(input: String): String =
-        input.split("_").joinToString(" ") {
-            name -> name.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-            }
-        }
 
 }
