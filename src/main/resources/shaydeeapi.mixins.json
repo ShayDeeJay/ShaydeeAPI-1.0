@@ -4,6 +4,7 @@
   "package": "org.shaydee.shaydeeapi.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ItemEntityMixin"
   ],
   "client": [
   ],
