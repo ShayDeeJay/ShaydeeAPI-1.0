@@ -11,8 +11,8 @@ import org.openjdk.nashorn.internal.objects.NativeRegExp.source
 
 public data class MultiSound(
     val audio: SoundEvent,
-    val pitch: Float = 1F,
     val volume: Float = 1F,
+    val pitch: Float = 1F
 )
 
 public object SoundHelpers{
@@ -58,7 +58,7 @@ public object SoundHelpers{
                 position.z,
                 it.audio,
                 source,
-                it.pitch,
+                it.volume,
                 it.pitch
             )
         }

@@ -24,7 +24,7 @@ public object TextHelpers {
     public fun String.translatable(): String = Component.translatable(this).string
 
     @JvmStatic
-    public fun String.withStyle(colour: Int = -1, bold: Boolean = false, underline: Boolean = false, strike: Boolean = false) : Component{
+    public fun String.withStyle(colour: Int = -1, bold: Boolean = false, underline: Boolean = false, strike: Boolean = false) : Component {
         return withStyleComponentTrans(this.translatable(), colour, bold, underline, strike)
     }
 
