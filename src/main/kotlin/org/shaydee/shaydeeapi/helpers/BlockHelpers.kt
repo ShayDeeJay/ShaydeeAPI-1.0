@@ -45,6 +45,28 @@ public object BlockHelpers {
     }
 
     @JvmStatic
+    @JvmName("swapFromPlayer")
+    public fun Player.swapItemsWithHand(
+        itemStackHandler: ItemStackHandler,
+        outputSlot: Int,
+        hand: InteractionHand,
+        count: Int = 0
+    ) {
+        val playerItem = this.getItemInHand(hand)
+        val inventoryItem = itemStackHandler.getStackInSlot(outputSlot)
+        fun getCorrectCount(itemStack: ItemStack) = if(count == 0) itemStack.count else count
+
+        itemStackHandler.setStackInSlot(outputSlot, playerItem.copyWithCount(getCorrectCount(playerItem)))
+        if (playerItem.count > 1) {
+            ItemHelpers.throwOrAddItem(this, inventoryItem.copyWithCount(getCorrectCount(inventoryItem)))
+            playerItem.shrink(1)
+            return
+        }
+
+        this.setItemInHand(hand, inventoryItem.copyWithCount(getCorrectCount(inventoryItem)))
+    }
+
+    @JvmStatic
     public fun removeItemsFromHandToSlot(
         itemStackHandler: ItemStackHandler,
         outputSlot: Int,
