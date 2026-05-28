@@ -1,12 +1,14 @@
 package org.shaydee.shaydeeapi.helpers
 import net.minecraft.core.BlockPos
+import net.minecraft.nbt.DoubleTag
+import net.minecraft.nbt.ListTag
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.phys.Vec3
 import kotlin.math.*
 import kotlin.random.Random
 
-public object PositionFinders {
+public object PositionHelpers {
 
     public fun getOuterRingOfRadiusList(position: Vec3, radius: Double, points: Int): List<Vec3> = buildList {
         getOuterRingOfRadius(position, radius, points) { add(it) }
@@ -26,6 +28,12 @@ public object PositionFinders {
 
     public fun getRandomSphericalPositionsList(position: Vec3, radius: Double, numPoints: Int): List<Vec3> = buildList {
         getRandomSphericalPositions(position, radius, numPoints) { add(it) }
+    }
+
+    public fun nbtDoubleList(vararg pNumbers: Double): ListTag {
+        val tagList = ListTag()
+        for (d0 in pNumbers) tagList.add(DoubleTag.valueOf(d0))
+        return tagList
     }
 
     public inline fun getOuterRingOfRadius(position: Vec3, radius: Double, points: Int, action: (Vec3) -> Unit) {
@@ -142,7 +150,13 @@ public object PositionFinders {
         }
     }
 
-    public fun getSemicircle(position: Vec3, radius: Double, pointsDensity: Double, yaw: Float, range: Int): List<Vec3> {
+    public fun getSemicircle(
+        position: Vec3,
+        radius: Double,
+        pointsDensity: Double,
+        yaw: Float,
+        range: Int,
+    ): List<Vec3> {
         val numberOfPoints = (pointsDensity * radius).toInt()
         val offsetAngleRad = Math.toRadians((yaw + 90).toDouble())
 

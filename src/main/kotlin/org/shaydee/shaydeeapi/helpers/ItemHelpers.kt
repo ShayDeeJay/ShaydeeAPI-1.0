@@ -69,6 +69,15 @@ public object ItemHelpers {
     }
 
     @JvmStatic
+    @JvmName("hurt_ext")
+    public fun ItemStack.hurtAndKeepItem(
+        damage: Int,
+        level: ServerLevel,
+        livingEntity: LivingEntity,
+        chance: Int = 10
+    ): Unit = hurtAndKeepItemChanced(this, damage, level, livingEntity, chance)
+
+    @JvmStatic
     public fun throwNewItem(livingEntity: LivingEntity, itemStack: ItemStack) {
         val offsetX = -sin(Math.toRadians(livingEntity.yRotO.toDouble())) * 2
         val offsetZ = cos(Math.toRadians(livingEntity.yRotO.toDouble())) * 2

@@ -5,6 +5,7 @@ import net.minecraft.Util.prefix
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.world.entity.player.Player
+import org.apache.logging.log4j.core.tools.picocli.CommandLine
 import org.openjdk.nashorn.tools.ShellFunctions.input
 import org.shaydee.shaydeeapi.helpers.ColourHelpers.getRgb
 import org.shaydee.shaydeeapi.helpers.ColourHelpers.headerColour
@@ -24,9 +25,10 @@ public object TextHelpers {
     public fun String.translatable(): String = Component.translatable(this).string
 
     @JvmStatic
-    public fun String.withStyle(colour: Int = -1, bold: Boolean = false, underline: Boolean = false, strike: Boolean = false) : Component {
-        return withStyleComponentTrans(this.translatable(), colour, bold, underline, strike)
-    }
+    public fun Boolean.onTrue(doOnTrue: (Boolean) -> Unit) { if (this) doOnTrue.invoke(true) }
+
+    @JvmStatic
+    public fun Boolean.onFalse(doOnTrue: (Boolean) -> Unit) { if (!this) doOnTrue.invoke(false) }
 
     @JvmStatic
     public fun nameToId(input: String): String =
@@ -41,6 +43,22 @@ public object TextHelpers {
     @JvmStatic
     public fun withStyleComponentTrans(text: String, colour: Int, vararg args: Any?): Component =
         Component.translatable(text, *args).withStyle { it.withColor(colour)}
+
+    @JvmStatic
+    @JvmName("withStyleComponentTrans")
+    public fun String.withStyleComponentTrans(
+        colour: Int = -1,
+        bold: Boolean = false,
+        underline: Boolean = false,
+        strike: Boolean = false,
+        vararg args: Any?
+    ): Component =
+        Component.translatable(this, *args).withStyle {
+            it.withColor(colour)
+                .withBold(bold)
+                .withUnderlined(underline)
+                .withStrikethrough(strike)
+        }
 
     @JvmStatic
     public fun playDebugMessage(player: Player, string: String): Unit =
@@ -82,6 +100,17 @@ public object TextHelpers {
         val getKey = InputConstants.getKey(key, -1)
         val translatable = "text.shaydeeapi.hold_details"
         return displaySplitText(translatable, getKey.name, prefixColour, keyColour)
+    }
+
+    @JvmStatic
+    public fun String.withStyle(
+        colour: Int = -1,
+        bold: Boolean = false,
+        underline: Boolean = false,
+        strike: Boolean = false,
+        vararg args: Any?
+    ) : Component {
+        return withStyleComponentTrans(this.translatable(), colour, bold, underline, strike)
     }
 
     /**

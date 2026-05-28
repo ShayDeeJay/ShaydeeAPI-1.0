@@ -1,21 +1,36 @@
 package org.shaydee.shaydeeapi.helpers
 
+import net.minecraft.commands.arguments.CompoundTagArgument.compoundTag
+import net.minecraft.core.SectionPos.z
 import net.minecraft.core.particles.ParticleOptions
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
+import net.minecraft.nbt.Tag
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
+import org.shaydee.shaydeeapi.Helpers.nbtDoubleList
 import org.shaydee.shaydeeapi.particle.GenericParticleOption
 import org.shaydee.shaydeeapi.particle.ParticleStore
 import kotlin.math.*
 import kotlin.random.Random
 
 public object ParticleHelpers {
+
+    @JvmStatic
+    public fun CompoundTag.savePosition(pos: Vec3) {
+        put("position", nbtDoubleList(pos.x, pos.y, pos.z))
+    }
+
+    public fun CompoundTag.getPosition(): Vec3{
+        val list: ListTag = getList("position", Tag.TAG_DOUBLE.toInt())
+        return Vec3(list.getDouble(0), list.getDouble(1), list.getDouble(2))
+    }
 
     @JvmStatic
     public fun genericParticle(

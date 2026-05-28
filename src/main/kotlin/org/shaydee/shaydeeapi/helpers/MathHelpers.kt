@@ -1,11 +1,17 @@
 package org.shaydee.shaydeeapi.helpers
 
 import java.text.DecimalFormat
+import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.text.iterator
 
 public object MathHelpers {
+
+    @JvmStatic
+    public fun nextFloat(a: Double, b: Double): Float {
+        return Random.nextDouble(a, b).toFloat()
+    }
 
     @JvmStatic
     public var FORMAT: DecimalFormat = DecimalFormat("#.##")
@@ -43,13 +49,6 @@ public object MathHelpers {
     }
 
     @JvmStatic
-    public fun roundNonWholeDouble(number: Double): Double {
-        val decimalPart = number - number.toInt()
-        if (decimalPart == 0.0) return number.roundToInt().toDouble()
-        return number
-    }
-
-    @JvmStatic
     public fun Double.roundToString(): String {
         return roundNonWholeString(this)
     }
@@ -62,6 +61,27 @@ public object MathHelpers {
     @JvmStatic
     public fun Double.formatDoubleString(): String {
         return roundNonWholeString(doubleFormattedDouble(this))
+    }
+
+    @JvmStatic
+    public fun Double.singleAndRound(): String {
+        return roundNonWholeString(singleFormattedDouble(this))
+    }
+
+    @JvmStatic
+    public fun Float.singleAndRound(): String {
+        return roundNonWholeString(singleFormattedDouble(this.toDouble()))
+    }
+
+    @JvmStatic
+    public fun Number.roundToNearest(factor: Double): Double =
+        round(this.toDouble() / factor) * factor
+
+    @JvmStatic
+    public fun roundNonWholeDouble(number: Double): Double {
+        val decimalPart = number - number.toInt()
+        if (decimalPart == 0.0) return number.roundToInt().toDouble()
+        return number
     }
 
     @JvmStatic
@@ -142,6 +162,44 @@ public object MathHelpers {
             }
         }
         return res.toString()
+    }
+
+    @JvmStatic
+    public fun Double.ticksToTime(): String {
+        val duration = (this / 20).toInt()
+        val hours = duration / 3600
+        val minutes = (duration % 3600) / 60
+        val seconds = duration % 60
+
+        val builder = StringBuilder()
+        if (hours > 0) builder.append(hours).append("h ")
+        if (minutes > 0) builder.append(minutes).append("m ")
+        if (seconds > 0 || builder.isEmpty()) builder.append(seconds).append("s")
+
+        return builder.toString().trim()
+    }
+
+    @JvmStatic
+    @JvmName("tickswithmili")
+    public fun Double.ticksToTime(showMilliseconds: Boolean): String {
+        val totalSeconds = this / 20.0
+
+        if (totalSeconds < 1.0) {
+            return if (showMilliseconds && totalSeconds > 0)
+                "%.2fs".format(java.util.Locale.US, totalSeconds) else "0s"
+        }
+
+        val hours = (totalSeconds / 3600).toInt()
+        val minutes = ((totalSeconds % 3600) / 60).toInt()
+        val seconds = (totalSeconds % 60).toInt()
+
+        return buildString {
+            if (hours > 0) append("${hours}h ")
+            if (minutes > 0) append("${minutes}m ")
+
+            // Append seconds if they exist, or if the string is empty
+            if (seconds > 0 || isEmpty()) append("${seconds}s")
+        }.trim()
     }
 
     @JvmStatic

@@ -175,7 +175,7 @@ public object ColourHelpers {
     }
 
     @JvmStatic
-    public fun getColorTransition(
+        public fun getColorTransition(
         startColor: Int,
         endColor: Int,
         ticker: Int,

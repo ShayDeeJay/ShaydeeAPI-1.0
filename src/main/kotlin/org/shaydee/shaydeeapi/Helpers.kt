@@ -10,6 +10,7 @@ import net.minecraft.nbt.ListTag
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.attributes.Attribute
 import net.minecraft.world.entity.ai.attributes.AttributeModifier
 import net.minecraft.world.entity.player.Player
@@ -23,6 +24,9 @@ import kotlin.random.Random
 public object Helpers {
 
     @JvmStatic
+    public fun apiRes(location: String): ResourceLocation = res(location, ShaydeeAPI.ID)
+
+    @JvmStatic
     public fun <T> listRandom(collection: MutableList<T>): T = collection.random()
 
     public fun Level.sLevel() : ServerLevel? =
@@ -30,6 +34,19 @@ public object Helpers {
 
     public fun Level.cLevel() : ClientLevel? =
         this as? ClientLevel
+
+    /**
+     * returns the list if the list not empty
+     * **/
+    public fun Collection<*>.takeNotEmpty(thing: (Collection<*>) -> Unit): Unit? =
+        this.takeIf { it.isNotEmpty() }?.let { thing(it) }
+
+    /**
+     * returns the list to iterate over if the list is not empty
+     * **/
+
+    public fun <E, T : Collection<E>> T.takeNotEmptyEntries(thing: (E) -> Unit): Unit? =
+        this.takeIf { it.isNotEmpty() }?.let { it.forEach { entry -> thing(entry) } }
 
     public fun res(location: String, modId: String): ResourceLocation =
         ResourceLocation.fromNamespaceAndPath(modId, location)
@@ -53,15 +70,11 @@ public object Helpers {
         return collection.filter { component -> filter.any { component.string.contains(it) } }
     }
 
-    public fun addTransientAttribute(player: Player, value: Double, location: String, id: String, attributeHolder: Holder<Attribute?>?) {
-        val modifier = AttributeModifier(
-            res(location, id),
-            value,
-            AttributeModifier.Operation.ADD_VALUE
-        )
+    public fun addTransientAttribute(entity: LivingEntity, value: Double, location: String, id: String, attributeHolder: Holder<Attribute?>?) {
+        val modifier = AttributeModifier(res(location, id), value, AttributeModifier.Operation.ADD_VALUE)
         val multiMap: Multimap<Holder<Attribute?>?, AttributeModifier?> = HashMultimap.create()
         multiMap.put(attributeHolder, modifier)
-        player.attributes.addTransientAttributeModifiers(multiMap)
+        entity.attributes.addTransientAttributeModifiers(multiMap)
     }
 
     public fun getRandomParticleVelocity(speed: Double): Vec3 {
