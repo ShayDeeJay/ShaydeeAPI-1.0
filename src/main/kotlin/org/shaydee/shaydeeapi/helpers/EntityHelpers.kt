@@ -38,7 +38,8 @@ public object EntityHelpers {
         classType: Class<out LivingEntity> = LivingEntity::class.java,
         conditions: TargetingConditions = TargetingConditions.forCombat(),
         doOnCall: (LivingEntity) -> Unit,
-    ): Unit = this.level().getNearbyEntities(classType, conditions, this as? LivingEntity, bounding).forEach(doOnCall)
+        filter: Boolean
+    ): Unit = this.level().getNearbyEntities(classType, conditions, this as? LivingEntity, bounding).filterNot{filter}.forEach(doOnCall)
 
     @JvmStatic
     public fun Entity.nearestEntity(

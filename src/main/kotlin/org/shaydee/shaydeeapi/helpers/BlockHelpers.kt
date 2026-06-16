@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntitySelector.ENTITY_STILL_ALIVE
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Player
@@ -70,7 +71,7 @@ public object BlockHelpers {
 
     @JvmStatic
     public fun dropItemsOrBlock(
-        entity: Projectile,
+        entity: Player,
         pos: BlockPos,
         breakSpeed: Float,
         fortuneLevel: Int,
@@ -152,12 +153,10 @@ public object BlockHelpers {
     }
 
     @JvmStatic
-    private fun collectOrDrop(entity: Projectile, autoCollect: Boolean, item: ItemEntity, level: Level) {
+    private fun collectOrDrop(entity: Player, autoCollect: Boolean, item: ItemEntity, level: Level) {
         if (autoCollect) {
-            val owner = entity.owner as? Player
-            if (owner != null) {
-                handlePlayerPickup(item, owner)
-            }
+            handlePlayerPickup(item, entity)
+
         } else {
             level.addFreshEntity(item)
         }
