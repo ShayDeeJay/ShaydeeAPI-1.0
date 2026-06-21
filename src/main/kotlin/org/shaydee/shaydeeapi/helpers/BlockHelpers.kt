@@ -9,28 +9,33 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntitySelector.ENTITY_STILL_ALIVE
+import net.minecraft.world.entity.ExperienceOrb
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.crafting.RecipeType
 import net.minecraft.world.item.crafting.SingleRecipeInput
+import net.minecraft.world.item.enchantment.EnchantmentHelper
 import net.minecraft.world.item.enchantment.Enchantments
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.DropExperienceBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf
+import net.minecraft.world.level.levelgen.SurfaceRules.state
 import net.minecraft.world.level.storage.loot.LootParams
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import net.neoforged.fml.ModList
+import net.neoforged.neoforge.capabilities.Capabilities
 import net.neoforged.neoforge.capabilities.Capabilities.ItemHandler
 import net.neoforged.neoforge.items.IItemHandler
+import net.neoforged.neoforge.items.ItemHandlerHelper
 import net.neoforged.neoforge.items.ItemStackHandler
 import org.apache.commons.lang3.Range
 import org.apache.commons.lang3.tuple.Pair
@@ -92,17 +97,25 @@ public object BlockHelpers {
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3)
 
         if(!voidBlocks) {
+            val block = bState.block
             when(isSilkTouch) {
                 true -> {
-                    val getBlock = ItemStack(bState.block)
+                    val getBlock = ItemStack(block)
                     val iEntity = ItemEntity(level, centre.x, centre.y, centre.z, getBlock)
                     collectOrDrop(entity, autoCollect, iEntity, level)
                 }
                 else -> {
-                    val drops: MutableList<ItemStack> = lootBuilder(pos, level, bState, level, getDiamondPickaxe(fortuneLevel, level))
+                    val tool = getDiamondPickaxe(fortuneLevel, level)
+                    val drops: MutableList<ItemStack> = lootBuilder(pos, level, bState, level, tool)
                     drops.forEach {
                         val canBurn: ItemStack = smeltable(level, it)
                         val item = ItemEntity(level, centre.x, centre.y, centre.z, if (smelt) canBurn else it)
+                        if(block is DropExperienceBlock){
+                            val xp =  EnchantmentHelper.processBlockExperience(level, tool, bState.getExpDrop(level, pos, null, entity, tool))
+                            val exp = ExperienceOrb(level, centre.x, centre.y, centre.z, xp)
+                            level.addFreshEntity(exp)
+                        }
+
                         collectOrDrop(entity, autoCollect, item, level)
                     }
                 }
@@ -156,7 +169,6 @@ public object BlockHelpers {
     private fun collectOrDrop(entity: Player, autoCollect: Boolean, item: ItemEntity, level: Level) {
         if (autoCollect) {
             handlePlayerPickup(item, entity)
-
         } else {
             level.addFreshEntity(item)
         }
@@ -397,50 +409,70 @@ public object BlockHelpers {
         return Optional.empty()
     }
 
+    private fun insertIntoContainers(
+        player: Player,
+        stack: ItemStack,
+        amount: Int
+    ): Int {
+        var remaining = stack.copyWithCount(amount)
+
+        for (slot in 0 until player.inventory.containerSize) {
+            val containerStack = player.inventory.getItem(slot)
+            if (containerStack.isEmpty) continue
+
+            val handler = containerStack.getCapability(ItemHandler.ITEM) ?: continue
+            remaining = ItemHandlerHelper.insertItem(handler, remaining, false)
+
+            if (remaining.isEmpty) return 0
+        }
+
+        return remaining.count
+    }
+
     public fun handlePlayerPickup(itemEntity: ItemEntity, player: Player): Boolean {
         val inv = player.inventory
-        val entityStack = itemEntity.item
         val maxStackSize = 64
-        var remainingAmount = entityStack.count
+        var remainingAmount = itemEntity.item.count
         val availSlots = inv.containerSize - 5
         var pickedUpItems = false
+
+        if(player.isCreative){
+            player.addItem(itemEntity.item)
+            itemEntity.discard()
+            return true
+        }
 
         for (i in 0 until availSlots) {
             if (remainingAmount <= 0) break
 
             val slotStack = inv.getItem(i)
             val slotSpace = maxStackSize - slotStack.count
-            val isStack = slotStack.item === entityStack.item && slotStack.count < maxStackSize
+            val isStack = slotStack.item === itemEntity.item.item && slotStack.count < maxStackSize
             val emptySlot = slotStack.isEmpty
 
             when {
-                player.isCreative -> {
-                    player.addItem(entityStack)
-                    pickedUpItems = true
-                }
-
                 isStack -> {
                     val addAmount = minOf(remainingAmount, slotSpace)
                     slotStack.grow(addAmount)
                     remainingAmount -= addAmount
-                    entityStack.shrink(addAmount)
+                    itemEntity.item.shrink(addAmount)
                     pickedUpItems = true
                 }
 
                 emptySlot -> {
                     val addAmount = minOf(remainingAmount, maxStackSize)
-                    inv.setItem(i, entityStack.copy().split(addAmount))
+                    inv.setItem(i, itemEntity.item.copy().split(addAmount))
                     remainingAmount -= addAmount
-                    entityStack.shrink(addAmount)
+                    itemEntity.item.shrink(addAmount)
                     pickedUpItems = true
                 }
-
-                else -> {
-                    itemEntity.moveTo(player.position())
-                    player.level().addFreshEntity(itemEntity)
-                    return false
-                }
             }
+        }
+
+        if (remainingAmount > 0) {
+            itemEntity.moveTo(player.position())
+            player.level().addFreshEntity(itemEntity)
+            return pickedUpItems
         }
 
         return pickedUpItems
