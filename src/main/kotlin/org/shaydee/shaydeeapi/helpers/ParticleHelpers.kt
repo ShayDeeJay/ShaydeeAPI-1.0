@@ -3,6 +3,7 @@ package org.shaydee.shaydeeapi.helpers
 import net.minecraft.commands.arguments.CompoundTagArgument.compoundTag
 import net.minecraft.core.SectionPos.z
 import net.minecraft.core.particles.ParticleOptions
+import net.minecraft.core.particles.ParticleType
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
@@ -17,6 +18,7 @@ import net.minecraft.world.phys.Vec3
 import org.shaydee.shaydeeapi.Helpers.nbtDoubleList
 import org.shaydee.shaydeeapi.particle.GenericParticleOption
 import org.shaydee.shaydeeapi.particle.ParticleStore
+import org.shaydee.shaydeeapi.registry.ShaydeeAPIReg
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -39,18 +41,40 @@ public object ParticleHelpers {
         colourPrimary: Int,
         colourSecondary: Int,
     ): GenericParticleOption = GenericParticleOption(
-        ParticleStore.MAGIC_PARTICLE,
+        ShaydeeAPIReg.MAGIC,
         colourPrimary,
         colourSecondary,
         lifetime,
         size,
         false,
-        1.0
+        1.0,
+        ParticleStore.STANDARD
+    )
+
+    @JvmStatic
+    public fun easyParticle(
+        particleType: ParticleType<*>,
+        lifetime: Int,
+        speed: Double,
+        colourPrimary: Int = 0,
+        colourFade: Int = 0,
+        size: Float = 1F,
+        staticSize: Boolean = false,
+        animation: Int = ParticleStore.STANDARD
+    ): GenericParticleOption = GenericParticleOption(
+        particleType,
+        colourPrimary,
+        colourFade,
+        lifetime,
+        size,
+        staticSize,
+        speed,
+        animation
     )
 
     @JvmStatic
     public fun genericParticle(
-        particleType: Int,
+        particleType: ParticleType<*>,
         colourPrimary: Int,
         colourFade: Int,
         lifetime: Int,
@@ -64,16 +88,17 @@ public object ParticleHelpers {
         lifetime,
         size,
         staticSize,
-        speed
+        speed,
+        ParticleStore.STANDARD
     )
 
     @JvmStatic
     public fun genericParticle(
-        particleType: Int,
+        particleType: ParticleType<*>,
         lifetime: Int,
         size: Float,
-        colourPrimary: Int,
-        colourSecondary: Int,
+        colourPrimary: Int = 0,
+        colourSecondary: Int = 0,
     ): GenericParticleOption = GenericParticleOption(
         particleType,
         colourPrimary,
@@ -81,12 +106,13 @@ public object ParticleHelpers {
         lifetime,
         size,
         false,
-        1.0
+        1.0,
+        ParticleStore.STANDARD
     )
 
     @JvmStatic
     public fun genericParticle(
-        particleType: Int,
+        particleType: ParticleType<*>,
         lifetime: Int,
         size: Float,
         colourPrimary: Int,
@@ -99,7 +125,8 @@ public object ParticleHelpers {
         lifetime,
         size,
         setStaticSize,
-        1.0
+        1.0,
+        ParticleStore.STANDARD
     )
 
     @JvmStatic
@@ -166,10 +193,10 @@ public object ParticleHelpers {
         size: Float,
         speed: Double = 1.0,
     ): ParticleOptions {
-        val generic = genericParticle(ParticleStore.GENERIC_PARTICLE, colour1, colour2, lifetime, size, false, speed)
-        val magic = genericParticle(ParticleStore.MAGIC_PARTICLE, colour1, colour2, lifetime, size, false, speed)
-        val soft = genericParticle(ParticleStore.SOFT_PARTICLE, colour1, colour2, lifetime, size, false, speed)
-        val square = genericParticle(ParticleStore.SQUARE_PARTICLE, colour1, colour2, lifetime, size, false, speed)
+        val generic = genericParticle(ShaydeeAPIReg.GENERIC, colour1, colour2, lifetime, size, false, speed)
+        val magic = genericParticle(ShaydeeAPIReg.MAGIC, colour1, colour2, lifetime, size, false, speed)
+        val soft = genericParticle(ShaydeeAPIReg.SOFT, colour1, colour2, lifetime, size, false, speed)
+        val square = genericParticle(ShaydeeAPIReg.SQUARE, colour1, colour2, lifetime, size, false, speed)
 
         val collectTypes = listOf(generic, magic, soft, square)
         return collectTypes.random()
@@ -241,6 +268,65 @@ public object ParticleHelpers {
         }
     }
 
+    @JvmStatic
+    public fun Level.spiralParticle(
+        position: Vec3,
+        spiralWidth: Double,
+        spiralHeight: Double,
+        colour: Int = 0,
+        fade: Int = colour,
+        lifetime: Int = 30,
+        size: Float = 1F,
+        speed: Double = 0.3,
+        staticSize: Boolean = false,
+    ){
+        val generic = GenericParticleOption(
+            ShaydeeAPIReg.ENCHANT,
+            colour = colour,
+            fade = fade,
+            lifetime = lifetime,
+            size = size,
+            setStaticSize = staticSize,
+            speed = speed,
+            animationType = ParticleStore.SPIRAL
+        )
+
+        sendParticles(generic, position, 0, spiralWidth, spiralHeight, 0.0, 1.0)
+    }
+
+    @JvmStatic
+    public fun <T : ParticleOptions> Level.sendParticles(
+        type: T,
+        positions: Vec3,
+        pParticleCount: Int,
+        xOff: Double,
+        yOff: Double,
+        zOff: Double,
+        speed: Double,
+    ) {
+        if (this is ServerLevel) {
+            val packet = ClientboundLevelParticlesPacket(
+                type,
+                false,
+                positions.x,
+                positions.y,
+                positions.z,
+                xOff.toFloat(),
+                yOff.toFloat(),
+                zOff.toFloat(),
+                speed.toFloat(),
+                pParticleCount
+            )
+            for (serverPlayer in players()) {
+                if(serverPlayer.distanceToSqr(positions) > 100) continue
+                sendParticles(serverPlayer, positions.x, positions.y, positions.z, packet)
+            }
+        } else {
+            this.addParticle(type, positions.x, positions.y, positions.z, xOff , yOff , zOff)
+        }
+    }
+
+    @Deprecated("use @sendParticle")
     @JvmStatic
     public fun <T : ParticleOptions> sendParticles(
         level: Level,

@@ -103,6 +103,7 @@ public open class MovingParticle(
             ySpeed: Double,
             zSpeed: Double
         ): Particle {
+
             val movingParticle = object : MovingParticle(level, x, y, z, xSpeed, ySpeed, zSpeed) {
                 var tick = 0
                 public override fun tick() {

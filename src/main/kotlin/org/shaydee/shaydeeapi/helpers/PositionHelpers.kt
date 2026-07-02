@@ -4,6 +4,9 @@ import net.minecraft.nbt.DoubleTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import kotlin.math.*
 import kotlin.random.Random
@@ -116,6 +119,23 @@ public object PositionHelpers {
             }
         }
     }
+
+    public fun AABB.getBlocksInAABB(): List<BlockPos> {
+        val min = BlockPos.containing(minX, minY, minZ)
+        val max = BlockPos.containing(maxX, maxY, maxZ)
+
+        return BlockPos.betweenClosed(min, max)
+            .map { it.immutable() }
+    }
+
+    public fun AABB.getBlockStatesInAABB(level: Level): Map<BlockPos, BlockState> =
+        BlockPos.betweenClosed(
+            BlockPos.containing(minX, minY, minZ),
+            BlockPos.containing(maxX, maxY, maxZ)
+        )
+        .map { it.immutable() to level.getBlockState(it) }
+        .filter { (_, state) -> !state.isAir }
+        .toMap()
 
     public inline fun getRandomSphericalPositions(position: Vec3, radius: Double, numPoints: Int, action: (Vec3) -> Unit) {
         for (i in 0 until numPoints) {

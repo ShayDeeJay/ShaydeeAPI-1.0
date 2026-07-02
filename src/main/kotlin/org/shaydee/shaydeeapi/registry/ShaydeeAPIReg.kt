@@ -33,15 +33,9 @@ public object ShaydeeAPIReg {
     public val ENCHANT: ParticleType<GenericParticleOption> by
     register("enchant", Companion.MAP_CODEC, Companion.STREAM_CODEC)
 
-    public val MAGIC_MOVE: ParticleType<GenericParticleOption> by
-    register("magic_move", Companion.MAP_CODEC, Companion.STREAM_CODEC)
 
-    public val SOFT_MOVE: ParticleType<GenericParticleOption> by
-    register("soft_move", Companion.MAP_CODEC, Companion.STREAM_CODEC)
-
-    public val GENERIC_MOVE: ParticleType<GenericParticleOption> by
-    register("generic_move", Companion.MAP_CODEC, Companion.STREAM_CODEC)
-
+    public val VITALITY: ParticleType<GenericParticleOption> by
+    register("baked_vitality", Companion.MAP_CODEC, Companion.STREAM_CODEC)
 
     public fun <T : ParticleOptions> register(
         pKey: String,

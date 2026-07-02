@@ -6,9 +6,11 @@ import net.neoforged.fml.common.Mod
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent
 import net.neoforged.fml.event.lifecycle.FMLDedicatedServerSetupEvent
+import net.neoforged.neoforge.common.NeoForge.EVENT_BUS
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.shaydee.shaydeeapi.events.ServerEvents
 import org.shaydee.shaydeeapi.registry.ShaydeeAPIReg
 import thedarkcolour.kotlinforforge.neoforge.forge.MOD_BUS
 
@@ -16,26 +18,27 @@ import thedarkcolour.kotlinforforge.neoforge.forge.MOD_BUS
 public class ShaydeeAPI{
 
     public companion object{
+        public val LOGGER: Logger = LogManager.getLogger(ID)
         public const val ID : String = "shaydeeapi"
     }
 
-    public val logger: Logger = LogManager.getLogger(ID)
-
     init {
+        LOGGER.log(Level.INFO, "Initializing ShaydeeAPI!")
         ShaydeeAPIReg.PARTICLE_REGISTRY.register(MOD_BUS)
+        EVENT_BUS.register(ServerEvents())
     }
 
     public fun onClientSetup(event: FMLClientSetupEvent) {
-        logger.log(Level.INFO, "Initializing client...")
+        LOGGER.log(Level.INFO, "Initializing client...")
     }
 
     public fun onServerSetup(event: FMLDedicatedServerSetupEvent) {
-        logger.log(Level.INFO, "Server starting...")
+        LOGGER.log(Level.INFO, "Server starting...")
     }
 
     @SubscribeEvent
     public fun onCommonSetup(event: FMLCommonSetupEvent) {
-        logger.log(Level.INFO, "Hello! This is working!")
+        LOGGER.log(Level.INFO, "Hello! This is working!")
     }
 
 }
