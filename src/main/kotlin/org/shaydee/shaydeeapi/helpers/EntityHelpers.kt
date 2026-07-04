@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.ai.targeting.TargetingConditions
 import net.minecraft.world.level.ClipContext
+import net.minecraft.world.level.Level
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
@@ -39,6 +40,14 @@ public object EntityHelpers {
         conditions: TargetingConditions = TargetingConditions.forCombat(),
         doOnCall: (LivingEntity) -> Unit
     ): Unit = this.level().getNearbyEntities(classType, conditions, this as? LivingEntity, bounding).forEach(doOnCall)
+
+    @JvmStatic
+    public fun Level.entitiesInRange(
+        bounding: AABB,
+        classType: Class<out LivingEntity> = LivingEntity::class.java,
+        conditions: TargetingConditions = TargetingConditions.forCombat(),
+        doOnCall: (LivingEntity) -> Unit
+    ): Unit = getNearbyEntities(classType, conditions, null, bounding).forEach(doOnCall)
 
     @JvmStatic
     public fun Entity.nearestEntity(

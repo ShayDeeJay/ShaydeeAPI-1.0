@@ -25,7 +25,7 @@ public class ShaydeeAPI{
     init {
         LOGGER.log(Level.INFO, "Initializing ShaydeeAPI!")
         ShaydeeAPIReg.PARTICLE_REGISTRY.register(MOD_BUS)
-        EVENT_BUS.register(ServerEvents())
+//        EVENT_BUS.register(ServerEvents())
     }
 
     public fun onClientSetup(event: FMLClientSetupEvent) {

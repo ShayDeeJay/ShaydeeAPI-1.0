@@ -1,23 +1,14 @@
 package org.shaydee.shaydeeapi.particle
 
 import com.mojang.blaze3d.vertex.VertexConsumer
-import net.minecraft.advancements.critereon.MovementPredicate.speed
 import net.minecraft.client.Camera
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.particle.*
-import net.minecraft.client.particle.ParticleRenderType
-import net.minecraft.client.particle.SimpleAnimatedParticle
 import net.minecraft.client.renderer.LightTexture.FULL_BRIGHT
-import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
-import org.shaydee.shaydeeapi.helpers.ParticleHelpers.genericParticle
-import org.shaydee.shaydeeapi.particle.MovingParticle.Companion.intToRGB
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.component3
-
+import kotlin.math.floor
 import kotlin.random.Random
 
 public open class GenericParticle(
@@ -28,7 +19,7 @@ public open class GenericParticle(
     xSpeed: Double,
     ySpeed: Double,
     zSpeed: Double,
-    sprite: SpriteSet
+    sprite: SpriteSet,
 ) : SimpleAnimatedParticle(level, x, y, z, sprite, 0.0125f) {
 
     init {
@@ -37,7 +28,8 @@ public open class GenericParticle(
         zd = zSpeed
         quadSize *= 0.55f
         lifetime = 10 + random.nextInt(10)
-        pickSprite(sprite)
+
+        setSpriteFromAge(sprite)
         hasPhysics = false
     }
 
@@ -55,7 +47,7 @@ public open class GenericParticle(
             z: Double,
             xSpeed: Double,
             ySpeed: Double,
-            zSpeed: Double
+            zSpeed: Double,
         ): Particle {
             return when(type.animationType){
                 ParticleStore.MOVE_TO -> moving(level, x, y, z, xSpeed, ySpeed, zSpeed, type)
@@ -78,18 +70,27 @@ public open class GenericParticle(
             val genericParticle = object : GenericParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites) {
                 var tick = 0
 
+                init {
+                    xd = xSpeed
+                    yd = ySpeed
+                    zd = zSpeed
+                    lifetime = type.lifetime
+                    hasPhysics = false
+                    setSpriteFromAge(sprites)
+                }
+
                 public override fun tick() {
                     super.tick()
                     tick++
                     if (!type.setStaticSize) this.quadSize *= 0.9f
                     this.speedUpWhenYMotionIsBlocked = true
-                    if (tick % 4 == 0) setSprite(sprites.get(random.fork()))
+                    oRoll = roll
+                    this.roll += type.rotation.toFloat()
                 }
             }
 
             if (type.setStaticSize) genericParticle.quadSize = type.size else genericParticle.quadSize *= type.size
             setColour(type, genericParticle)
-            genericParticle.lifetime = type.lifetime + Random.nextInt(type.lifetime)
             return genericParticle
         }
 
@@ -112,7 +113,7 @@ public open class GenericParticle(
             ySpeed: Double,
             zSpeed: Double,
             type: GenericParticleOption,
-            lifetimeAlpha: LifetimeAlpha = LifetimeAlpha.ALWAYS_OPAQUE
+            lifetimeAlpha: LifetimeAlpha = LifetimeAlpha.ALWAYS_OPAQUE,
         ): GenericParticle {
             val genericParticle = object : GenericParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites) {
                 public val xStart: Double = x
@@ -168,6 +169,8 @@ public open class GenericParticle(
                     }
                     speedUpWhenYMotionIsBlocked = true
 
+                    oRoll = roll
+                    this.roll += type.rotation.toFloat()
                 }
             }
 
@@ -202,24 +205,30 @@ public open class GenericParticle(
                 private val centerZ = z
 
                 private var currentAngle = startAngle
+                private var currentRadius = radius
                 private val rotationSpeed = 0.45 * type.speed  // How fast it spins (radians per tick)
                 private val upwardSpeed = 0.05 * ySpeed     // How fast it floats up
+
+                private val shrinkFactor = (1.0 - (0.02 * zSpeed)).coerceIn(0.0, 1.0)
 
                 override fun tick() {
                     currentAngle += rotationSpeed
 
-                    val targetX = centerX + kotlin.math.cos(currentAngle) * radius
-                    val targetZ = centerZ + kotlin.math.sin(currentAngle) * radius
+                    if (zSpeed > 0.0) {
+                        currentRadius = (currentRadius * shrinkFactor).coerceAtLeast(0.0)
+                    }
+
+                    val targetX = centerX + kotlin.math.cos(currentAngle) * currentRadius
+                    val targetZ = centerZ + kotlin.math.sin(currentAngle) * currentRadius
 
                     this.xd = targetX - this.x
                     this.zd = targetZ - this.z
                     this.yd = upwardSpeed
 
-                    super.tick()
+                    if (!type.setStaticSize) this.quadSize *= 0.95f
 
-                    if (!type.setStaticSize) {
-                        this.quadSize *= 0.95f
-                    }
+                    oRoll = roll
+                    this.roll += type.rotation.toFloat()
                 }
             }
 
@@ -250,8 +259,6 @@ public open class GenericParticle(
                 Random.nextDouble(-1.0, 1.0)
             ).normalize()
 
-            // Build a fixed orthonormal basis (u, v) spanning the plane perpendicular to axis.
-            // Use a helper vector that's never near-parallel to axis, to avoid a degenerate cross product.
             val helper = if (kotlin.math.abs(axis.y) < 0.99) Vec3(0.0, 1.0, 0.0) else Vec3(1.0, 0.0, 0.0)
             val u = axis.cross(helper).normalize()
             val v = axis.cross(u).normalize() // already unit length since axis ⟂ u
@@ -287,6 +294,9 @@ public open class GenericParticle(
                     if (!type.setStaticSize) {
                         this.quadSize *= 0.95f
                     }
+
+                    oRoll = roll
+                    this.roll += type.rotation.toFloat()
                 }
             }
 

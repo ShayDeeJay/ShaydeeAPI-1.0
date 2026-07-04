@@ -9,6 +9,7 @@ import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
@@ -48,7 +49,8 @@ public object ParticleHelpers {
         size,
         false,
         1.0,
-        ParticleStore.STANDARD
+        ParticleStore.STANDARD,
+        0.0
     )
 
     @JvmStatic
@@ -69,7 +71,8 @@ public object ParticleHelpers {
         size,
         staticSize,
         speed,
-        animation
+        animation,
+        0.0
     )
 
     @JvmStatic
@@ -89,7 +92,8 @@ public object ParticleHelpers {
         size,
         staticSize,
         speed,
-        ParticleStore.STANDARD
+        ParticleStore.STANDARD,
+        0.0
     )
 
     @JvmStatic
@@ -107,7 +111,8 @@ public object ParticleHelpers {
         size,
         false,
         1.0,
-        ParticleStore.STANDARD
+        ParticleStore.STANDARD,
+        0.0
     )
 
     @JvmStatic
@@ -126,7 +131,8 @@ public object ParticleHelpers {
         size,
         setStaticSize,
         1.0,
-        ParticleStore.STANDARD
+        ParticleStore.STANDARD,
+        0.0
     )
 
     @JvmStatic
@@ -268,8 +274,44 @@ public object ParticleHelpers {
         }
     }
 
+    /**
+     * @param speed is only used when running on server side, on client side, using offsets functions as speed
+     */
+    @JvmStatic
+    public fun Level.standardParticle(
+        particleType: ParticleType<*>,
+        position: Vec3,
+        colour: Int = 0,
+        fade: Int = colour,
+        lifetime: Int = 30,
+        size: Float = 1F,
+        speed: Double = 0.3,
+        xOffset: Double = 0.0,
+        yOffset: Double = 0.0,
+        zOffset: Double = 0.0,
+        staticSize: Boolean = false,
+        rotationSpeed: Double = 0.0,
+        particleMultiplier: Int = 1
+    ){
+        repeat(particleMultiplier){
+            val generic = GenericParticleOption(
+                pType = particleType,
+                colour = colour,
+                fade = fade,
+                lifetime = lifetime,
+                size = size,
+                setStaticSize = staticSize,
+                speed = 0.0,
+                animationType = ParticleStore.STANDARD,
+                rotation = rotationSpeed,
+            )
+            sendParticles(generic, position, 0, xOffset, yOffset, zOffset, speed)
+        }
+    }
+
     @JvmStatic
     public fun Level.spiralParticle(
+        particleType: ParticleType<*>,
         position: Vec3,
         spiralWidth: Double,
         spiralHeight: Double,
@@ -279,19 +321,90 @@ public object ParticleHelpers {
         size: Float = 1F,
         speed: Double = 0.3,
         staticSize: Boolean = false,
+        cone: Double = 0.0,
+        rotationSpeed: Double = 0.0,
+        particleMultiplier: Int = 1
     ){
-        val generic = GenericParticleOption(
-            ShaydeeAPIReg.ENCHANT,
-            colour = colour,
-            fade = fade,
-            lifetime = lifetime,
-            size = size,
-            setStaticSize = staticSize,
-            speed = speed,
-            animationType = ParticleStore.SPIRAL
-        )
+        repeat(particleMultiplier){
+            val generic = GenericParticleOption(
+                pType = particleType,
+                colour = colour,
+                fade = fade,
+                lifetime = lifetime,
+                size = size,
+                setStaticSize = staticSize,
+                speed = speed,
+                animationType = ParticleStore.SPIRAL,
+                rotation = rotationSpeed,
+            )
 
-        sendParticles(generic, position, 0, spiralWidth, spiralHeight, 0.0, 1.0)
+            sendParticles(generic, position, 0, spiralWidth, spiralHeight, cone, 1.0)
+        }
+    }
+
+    @JvmStatic
+    public fun Level.moveToParticle(
+        particleType: ParticleType<*>,
+        start: Vec3,
+        end: Vec3,
+        colour: Int = 0,
+        fade: Int = colour,
+        lifetime: Int = 30,
+        size: Float = 1F,
+        speed: Double = 0.3,
+        staticSize: Boolean = false,
+        rotationSpeed: Double = 0.0,
+        particleMultiplier: Int = 1
+    ){
+        val pPos = Vec3(start.x - end.x, start.y - end.y, start.z - end.z)
+
+        repeat(particleMultiplier) {
+            val generic = GenericParticleOption(
+                particleType,
+                colour = colour,
+                fade = fade,
+                lifetime = lifetime,
+                size = size,
+                setStaticSize = staticSize,
+                speed = speed,
+                animationType = ParticleStore.MOVE_TO,
+                rotation = rotationSpeed,
+
+            )
+
+            sendParticles(generic, end, 0, pPos.x, pPos.y, pPos.z, 1.0)
+        }
+    }
+
+    @JvmStatic
+    public fun Level.hoverParticle(
+        particleType: ParticleType<*>,
+        pos: Vec3,
+        radius: Double,
+        colour: Int = 0,
+        fade: Int = colour,
+        lifetime: Int = 30,
+        size: Float = 1F,
+        speed: Double = 0.3,
+        staticSize: Boolean = false,
+        rotationSpeed: Double = 0.0,
+        particleMultiplier: Int = 1
+    ){
+        repeat(particleMultiplier) {
+            val generic = GenericParticleOption(
+                particleType,
+                colour = colour,
+                fade = fade,
+                lifetime = lifetime,
+                size = size,
+                setStaticSize = staticSize,
+                speed = 0.0,
+                animationType = ParticleStore.FLOAT_AROUND,
+                rotation = rotationSpeed,
+            )
+
+            sendParticles(generic, pos, 0, radius, speed, 0.0, 1.0)
+        }
     }
 
     @JvmStatic
@@ -317,10 +430,11 @@ public object ParticleHelpers {
                 speed.toFloat(),
                 pParticleCount
             )
-            for (serverPlayer in players()) {
-                if(serverPlayer.distanceToSqr(positions) > 100) continue
-                sendParticles(serverPlayer, positions.x, positions.y, positions.z, packet)
-            }
+            players()
+                .filterIsInstance<ServerPlayer>()
+                .filter { it.distanceToSqr(positions) < 5000 }
+                .forEach { sendParticles(it, positions.x, positions.y, positions.z, packet) }
+
         } else {
             this.addParticle(type, positions.x, positions.y, positions.z, xOff , yOff , zOff)
         }

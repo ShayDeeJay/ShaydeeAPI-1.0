@@ -106,7 +106,6 @@ public object ColourHelpers {
     @JvmStatic
     public fun colourByPercentRanged(targetNumber: Int, currentNumber: Int): Int {
         val percent = currentNumber.toFloat() / targetNumber.toFloat()
-
         return when {
             percent <= 0.1f -> offWhite
             percent <= 0.3f -> rating5Green

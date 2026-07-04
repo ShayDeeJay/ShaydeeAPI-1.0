@@ -11,6 +11,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.codec.ByteBufCodecs
 import net.minecraft.network.codec.StreamCodec
+import net.minecraft.world.level.block.Rotation
 
 public data class GenericParticleOption(
     val pType: ParticleType<*>,
@@ -21,6 +22,7 @@ public data class GenericParticleOption(
     val setStaticSize: Boolean,
     val speed: Double,
     val animationType: Int,
+    val rotation: Double
 ) : ParticleOptions {
 
     override fun getType(): ParticleType<*> = pType
@@ -41,6 +43,7 @@ public data class GenericParticleOption(
                     buf.writeBoolean(option.setStaticSize)
                     buf.writeDouble(option.speed)
                     buf.writeInt(option.animationType)
+                    buf.writeDouble(option.rotation)
                 },
                 { buf ->
                     GenericParticleOption(
@@ -51,7 +54,8 @@ public data class GenericParticleOption(
                         buf.readFloat(),
                         buf.readBoolean(),
                         buf.readDouble(),
-                        buf.readInt()
+                        buf.readInt(),
+                        buf.readDouble(),
                     )
                 }
             )
@@ -66,7 +70,8 @@ public data class GenericParticleOption(
                     Codec.FLOAT.fieldOf("size").forGetter(GenericParticleOption::size),
                     Codec.BOOL.fieldOf("setStaticSize").forGetter(GenericParticleOption::setStaticSize),
                     Codec.DOUBLE.fieldOf("speed").forGetter(GenericParticleOption::speed),
-                    Codec.INT.fieldOf("animation").forGetter(GenericParticleOption::animationType)
+                    Codec.INT.fieldOf("animation").forGetter(GenericParticleOption::animationType),
+                    Codec.DOUBLE.fieldOf("rotation").forGetter(GenericParticleOption::rotation),
                 ).apply(instance, ::GenericParticleOption)
             }
     }

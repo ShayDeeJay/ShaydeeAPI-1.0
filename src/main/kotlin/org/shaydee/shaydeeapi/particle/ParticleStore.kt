@@ -14,5 +14,4 @@ public object ParticleStore {
     public const val MOVE_TO: Int = 1
     public const val SPIRAL: Int = 2
     public const val FLOAT_AROUND: Int = 3
-
 }
