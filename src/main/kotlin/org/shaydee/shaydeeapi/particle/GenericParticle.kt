@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.LightTexture.FULL_BRIGHT
 import net.minecraft.world.phys.Vec3
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.api.distmarker.OnlyIn
-import kotlin.math.floor
 import kotlin.random.Random
 
 public open class GenericParticle(
@@ -196,16 +195,15 @@ public open class GenericParticle(
         ): Particle {
 
             val startAngle = Random.nextDouble(0.0, Math.PI * 2)
-            val radius = xSpeed
-            val startX = x + kotlin.math.cos(startAngle) * radius
-            val startZ = z + kotlin.math.sin(startAngle) * radius
+            val startX = x + kotlin.math.cos(startAngle) * xSpeed
+            val startZ = z + kotlin.math.sin(startAngle) * xSpeed
             val particle = object : GenericParticle(level, startX, y, startZ, 0.0, 0.0, 0.0, sprites) {
 
                 private val centerX = x
                 private val centerZ = z
 
                 private var currentAngle = startAngle
-                private var currentRadius = radius
+                private var currentRadius = xSpeed
                 private val rotationSpeed = 0.45 * type.speed  // How fast it spins (radians per tick)
                 private val upwardSpeed = 0.05 * ySpeed     // How fast it floats up
 
@@ -225,8 +223,9 @@ public open class GenericParticle(
                     this.zd = targetZ - this.z
                     this.yd = upwardSpeed
 
-                    if (!type.setStaticSize) this.quadSize *= 0.95f
+                    super.tick()
 
+                    if (!type.setStaticSize) this.quadSize *= 0.95f
                     oRoll = roll
                     this.roll += type.rotation.toFloat()
                 }
@@ -238,6 +237,7 @@ public open class GenericParticle(
             }
 
             setColour(type, particle)
+
             particle.lifetime = type.lifetime + Random.nextInt(type.lifetime)
             particle.gravity = 0f
             return particle

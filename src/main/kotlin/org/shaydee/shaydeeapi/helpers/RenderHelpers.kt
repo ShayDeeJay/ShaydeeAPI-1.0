@@ -1,17 +1,28 @@
 package org.shaydee.shaydeeapi.helpers
 
+import com.mojang.blaze3d.platform.Lighting
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.math.Axis
+import net.minecraft.CrashReport
+import net.minecraft.ReportedException
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.ImageWidget.texture
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.AABB
 import org.checkerframework.checker.units.qual.g
+import org.joml.Quaternionf
+import org.joml.Quaternionfc
 import java.awt.Color
 import java.util.OptionalDouble
 
@@ -83,6 +94,109 @@ public object RenderHelpers {
         val b = (color and 0xFF) / 255f
 
         return listOf(r,g,b).toFloatArray()
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    public fun GuiGraphics.customItemRenderer(modId: String, itemId: String, x: Int, y: Int, mouseX: Int = 0, mouseY: Int = 0, size: Float = 16F, displayContext: ItemDisplayContext = ItemDisplayContext.GUI) {
+        val stack = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(modId, itemId)).defaultInstance
+        customItemRenderer(stack, x, y, mouseX, mouseY, size, displayContext)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    public fun GuiGraphics.customItemRenderer(
+        itemStack: ItemStack, x: Int, y: Int, mouseX: Int = 0, mouseY: Int = 0, size: Float = 16F, displayContext: ItemDisplayContext = ItemDisplayContext.GUI
+    ) {
+        val minecraft = Minecraft.getInstance() ?: return
+        if (!itemStack.isEmpty) {
+            val model = minecraft.itemRenderer.getModel(itemStack, minecraft.level, null, 0)
+            pose().pushPose()
+            pose().translate(
+                (x + size/2),
+                (y + size/2),
+                (150 + (if (model.isGui3d) 0 else 0)).toFloat()
+            )
+
+            pose().mulPose(Axis.XP.rotationDegrees(mouseY.toFloat()))
+            pose().mulPose(Axis.YP.rotationDegrees(mouseX.toFloat()))
+
+            try {
+                pose().scale(size, -size, size)
+                val flag = !model.usesBlockLight()
+                if (flag) {
+                    Lighting.setupForFlatItems()
+                }
+
+                minecraft
+                    .itemRenderer
+                    .render(
+                        itemStack,
+                        displayContext,
+                        false,
+                        pose(),
+                        this.bufferSource(),
+                        15728880,
+                        OverlayTexture.NO_OVERLAY,
+                        model
+                    )
+                this.flush()
+                if (flag) {
+                    Lighting.setupFor3DItems()
+                }
+            } catch (throwable: Throwable) {
+                val cReport = CrashReport.forThrowable(throwable, "Rendering item")
+                val cReportCat = cReport.addCategory("Item being rendered")
+                cReportCat.setDetail("Item Type") { itemStack.item.toString() }
+                cReportCat.setDetail("Item Components") { itemStack.getComponents().toString() }
+                cReportCat.setDetail("Item Foil") { itemStack.hasFoil().toString() }
+                throw ReportedException(cReport)
+            }
+
+            pose().popPose()
+        }
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    public fun GuiGraphics.customItemRendererQ(modId: String, itemId: String, x: Float, y: Float, rotation: Quaternionf = Quaternionf(), size: Float = 16F, displayContext: ItemDisplayContext = ItemDisplayContext.GUI) {
+        val stack = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(modId, itemId)).defaultInstance
+        customItemRendererQ(stack, x, y, rotation, size, displayContext)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    public fun GuiGraphics.customItemRendererQ(
+        itemStack: ItemStack, x: Float, y: Float,
+        rotation: Quaternionf = Quaternionf(),
+        size: Float = 16F, displayContext: ItemDisplayContext = ItemDisplayContext.GUI
+    ) {
+        val minecraft = Minecraft.getInstance() ?: return
+        if (!itemStack.isEmpty) {
+            val model = minecraft.itemRenderer.getModel(itemStack, minecraft.level, null, 0)
+            pose().pushPose()
+            pose().translate((x + size / 2), (y + size / 2), 150f)
+            pose().mulPose(rotation) // single accumulated quaternion instead of two axis rotations
+            try {
+                pose().scale(size, -size, size)
+                val flag = !model.usesBlockLight()
+                if (flag) Lighting.setupForFlatItems()
+                minecraft.itemRenderer.render(
+                    itemStack, displayContext, false, pose(), this.bufferSource(),
+                    15728880, OverlayTexture.NO_OVERLAY, model
+                )
+                this.flush()
+                if (flag) Lighting.setupFor3DItems()
+            } catch (throwable: Throwable) {
+                val cReport = CrashReport.forThrowable(throwable, "Rendering item")
+                val cReportCat = cReport.addCategory("Item being rendered")
+                cReportCat.setDetail("Item Type") { itemStack.item.toString() }
+                cReportCat.setDetail("Item Components") { itemStack.getComponents().toString() }
+                cReportCat.setDetail("Item Foil") { itemStack.hasFoil().toString() }
+                throw ReportedException(cReport)
+            }
+            pose().popPose()
+        }
     }
 
     @JvmStatic

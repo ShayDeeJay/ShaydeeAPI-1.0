@@ -51,6 +51,11 @@ public object Helpers {
     public fun res(location: String, modId: String): ResourceLocation =
         ResourceLocation.fromNamespaceAndPath(modId, location)
 
+    public fun <T> List<T>.cycleEntries(tickCount: Int, cycleTime: Int = 40): T? {
+        if (isEmpty()) return null
+        return this[(tickCount / cycleTime) % this.size]
+    }
+
     public fun getAttributeValue(player: Player, attribute: Holder<Attribute?>): Double =
         player.getAttribute(attribute)?.value ?: -1.0
 

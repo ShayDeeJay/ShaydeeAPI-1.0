@@ -5,6 +5,7 @@ import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -20,6 +21,10 @@ public open class SyncedBlockEntity(
     public fun incrementPrivateTicks(): Int = privateTicks++
 
     public fun decrementPrivateTicks(): Int = privateTicks--
+
+    public open fun serverTick(level: Level, pos: BlockPos, blockState: BlockState) {}
+
+    public open fun clientTick(level: Level, pos: BlockPos, blockState: BlockState) {}
 
     public override fun getUpdatePacket(): ClientboundBlockEntityDataPacket? =
         ClientboundBlockEntityDataPacket.create(this)

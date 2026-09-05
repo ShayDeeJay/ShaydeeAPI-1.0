@@ -86,7 +86,6 @@ tasks.named('jar', Jar) {
 
 dependencies {
     implementation 'thedarkcolour:kotlinforforge-neoforge:5.11.0'
-    compileOnly(fileTree(dir: 'build/libs', include: ['ShoulderSurfing-NeoForge-1.21.1-4.10.4.jar']))
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

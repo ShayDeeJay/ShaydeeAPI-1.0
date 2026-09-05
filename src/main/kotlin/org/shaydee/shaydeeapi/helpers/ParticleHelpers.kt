@@ -255,6 +255,45 @@ public object ParticleHelpers {
     }
 
     @JvmStatic
+    public fun Level.particleBurst(
+        particleOptions: ParticleType<*>,
+        pos: Vec3,
+        colour: Int = 0,
+        fade: Int = colour,
+        lifetime: Int = 30,
+        size: Float = 1F,
+        speed: Double = 0.3,
+        xOffset: Double = 0.0,
+        yOffset: Double = 0.0,
+        zOffset: Double = 0.0,
+        staticSize: Boolean = false,
+        rotationSpeed: Double = 0.0,
+        particleMultiplier: Int = 1
+    ) {
+        repeat(5) {
+            val generic = GenericParticleOption(
+                pType = particleOptions,
+                colour = colour,
+                fade = fade,
+                lifetime = lifetime,
+                size = size,
+                setStaticSize = staticSize,
+                speed = speed,
+                animationType = ParticleStore.STANDARD,
+                rotation = rotationSpeed,
+            )
+
+            this.sendParticles(
+                generic, pos, particleMultiplier,
+                (Random.nextFloat() - 0.5) / 3,
+                (Random.nextFloat() - 0.5) / 3,
+                (Random.nextFloat() - 0.5) / 3,
+                speed
+            )
+        }
+    }
+
+    @JvmStatic
     public fun genericProjPart(
         world: Level,
         pos: Vec3,

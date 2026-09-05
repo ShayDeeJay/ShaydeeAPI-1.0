@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils
 import net.minecraft.world.entity.item.ItemEntity
@@ -37,10 +38,14 @@ public object ItemHelpers {
 
     @JvmStatic
     public fun ItemStack.throwOrAddItem(player: Player){
-        val isValidSlot = player.getInventory().freeSlot != -1
-        if (isValidSlot) player.addItem(this) else throwNewItem(player, this)
+        when{
+            player.mainHandItem.isEmpty -> player.setItemInHand(InteractionHand.MAIN_HAND, this)
+            player.getInventory().freeSlot != -1 -> player.addItem(this)
+            else -> throwNewItem(player, this)
+        }
     }
 
+    @Deprecated("use ext function instead")
     @JvmStatic
     public fun throwOrAddItem(player: Player, newItem: ItemStack) {
         val isValidSlot = player.getInventory().freeSlot != -1
@@ -117,6 +122,7 @@ public object ItemHelpers {
         throwItem(livingEntity.position(), stack, spawnPos, speedMultiplier, livingEntity.level())
     }
 
+    @JvmStatic
     private fun throwItem(pos: Vec3, stack: ItemStack, offset: Vec3, speedMultiplier: Vec3, level: Level) {
         val itemEntity = ItemEntity(level, pos.x, pos.y, pos.z, stack)
         val direction = offset.subtract(pos).normalize()
@@ -132,6 +138,27 @@ public object ItemHelpers {
         )
 
         itemEntity.deltaMovement = finalVelocity
+        itemEntity.setDefaultPickUpDelay()
+        level.addFreshEntity(itemEntity)
+    }
+
+    @JvmStatic
+    public fun ItemStack.throwItem(
+        pos: Vec3,
+        speed: Double,
+        upwardSpeed: Double,
+        level: Level,
+        pickupDelay: Int = 10
+    ) {
+        val itemEntity = ItemEntity(level, pos.x, pos.y, pos.z, this)
+
+        itemEntity.setPickUpDelay(pickupDelay)
+        itemEntity.deltaMovement = Vec3(
+            (Random.nextDouble() - 0.5) * speed,
+            upwardSpeed + (Random.nextDouble() * 0.2),
+            (Random.nextDouble() - 0.5) * speed
+        )
+
         itemEntity.setDefaultPickUpDelay()
         level.addFreshEntity(itemEntity)
     }

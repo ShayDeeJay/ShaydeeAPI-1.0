@@ -48,6 +48,21 @@ public object ShaydeeAPIReg {
     public val ALTAR: ParticleType<GenericParticleOption> by
     register("altar", Companion.MAP_CODEC, Companion.STREAM_CODEC)
 
+//    public val MAGIC_INFERNO: DeferredHolder<ParticleType<*>, out ParticleType<GenericParticleOption>> =
+//    register("magic_inferno", Companion.MAP_CODEC, Companion.STREAM_CODEC)
+//
+//    public val MAGIC_FROST: DeferredHolder<ParticleType<*>, out ParticleType<GenericParticleOption>> =
+//    register("magic_frost", Companion.MAP_CODEC, Companion.STREAM_CODEC)
+//
+//    public val MAGIC_VITALITY: DeferredHolder<ParticleType<*>, out ParticleType<GenericParticleOption>> =
+//    register("magic_vitality", Companion.MAP_CODEC, Companion.STREAM_CODEC)
+//
+//    public val MAGIC_VOID: DeferredHolder<ParticleType<*>, out ParticleType<GenericParticleOption>> =
+//    register("magic_void", Companion.MAP_CODEC, Companion.STREAM_CODEC)
+//
+//    public val MAGIC_UTILITY: DeferredHolder<ParticleType<*>, out ParticleType<GenericParticleOption>> =
+//    register("magic_utility", Companion.MAP_CODEC, Companion.STREAM_CODEC)
+
     public fun <T : ParticleOptions> register(
         pKey: String,
         pCodecFactory: MapCodec<T>,

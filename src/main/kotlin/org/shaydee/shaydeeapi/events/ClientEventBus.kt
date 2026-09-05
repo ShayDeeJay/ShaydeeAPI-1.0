@@ -30,13 +30,6 @@ public object ClientEventBus {
             val type = it.get() as? ParticleType<GenericParticleOption> ?: return@forEach
             event.registerSpriteSet(type, ::GenericProvider)
         }
-
-//        event.registerSpriteSet(MAGIC, ::GenericProvider)
-//        event.registerSpriteSet(SOFT, ::GenericProvider)
-//        event.registerSpriteSet(MAGIC,::GenericProvider)
-//        event.registerSpriteSet(GENERIC, ::GenericProvider)
-//        event.registerSpriteSet(SQUARE, ::GenericProvider)
-//        event.registerSpriteSet(ENCHANT, ::GenericProvider)
     }
 
 }

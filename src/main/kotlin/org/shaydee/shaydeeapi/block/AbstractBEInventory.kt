@@ -17,8 +17,7 @@ import net.neoforged.neoforge.items.ItemStackHandler
 public abstract class AbstractBEInventory(
     type: BlockEntityType<*>,
     pos: BlockPos,
-    state: BlockState,
-    stackSize: Int
+    state: BlockState
 ) : SyncedBlockEntity(type, pos, state) {
 
     protected var data: ContainerData = object : ContainerData {
@@ -31,9 +30,10 @@ public abstract class AbstractBEInventory(
     public val outputItemHandler: ItemStackHandler = setStackHandler(setOutputSlots(), getMaxSlotSizeOutput())
 
     public abstract fun setInputSlots(): Int
-    public abstract fun setOutputSlots(): Int
-    public abstract fun getMaxSlotSizeInput(): Int
-    public abstract fun getMaxSlotSizeOutput(): Int
+
+    public open fun getMaxSlotSizeInput(): Int = 64
+    public open fun setOutputSlots(): Int = 0
+    public open fun getMaxSlotSizeOutput(): Int = 0
 
     override fun applyImplicitComponents(componentInput: DataComponentInput) {
         super.applyImplicitComponents(componentInput)

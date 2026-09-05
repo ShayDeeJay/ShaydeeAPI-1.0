@@ -1,5 +1,6 @@
 package org.shaydee.shaydeeapi.helpers
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvent
@@ -7,6 +8,7 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.phys.Vec3
 import net.neoforged.neoforge.network.PacketDistributor
 import org.openjdk.nashorn.internal.objects.NativeRegExp.source
@@ -34,6 +36,25 @@ public object SoundHelpers{
     @JvmOverloads
     public fun LivingEntity.soundWithPosition(sound: SoundEvent, source: SoundSource = SoundSource.PLAYERS, volume: Float = 1F, pitch: Float = 1F){
         getSoundWithPosition(this.level(), this.position(), sound, source, volume, pitch)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    public fun Level.soundWithPosition(sound: SoundEvent, position: Vec3, source: SoundSource = SoundSource.BLOCKS, volume: Float = 1F, pitch: Float = 1F){
+        getSoundWithPosition(this, position, sound, source, volume, pitch)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    public fun BlockEntity.soundWithPosition(sound: SoundEvent, source: SoundSource = SoundSource.BLOCKS, volume: Float = 1F, pitch: Float = 1F){
+        val level = level ?: return
+        getSoundWithPosition(level, blockPos, sound, source, volume, pitch)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    public fun SoundEvent.multiSound(volume: Float = 1F, pitch: Float = 1F): MultiSound {
+        return MultiSound(this, volume, pitch)
     }
 
     @JvmStatic
@@ -72,6 +93,24 @@ public object SoundHelpers{
         val mc = ClientHelpers.getMinecraft()
         val ui = SimpleSoundInstance.forUI(sound, pitch, volume)
         mc.soundManager.play(ui)
+    }
+
+    @JvmStatic
+    public fun BlockEntity.multiSound(vararg multiSound: MultiSound) {
+        if(multiSound.isEmpty()) return
+        val blockPos = blockPos.center
+        multiSound.forEach {
+            level?.playSound(
+                null,
+                blockPos.x,
+                blockPos.y,
+                blockPos.z,
+                it.audio,
+                SoundSource.BLOCKS,
+                it.volume,
+                it.pitch
+            )
+        }
     }
 
     @JvmStatic

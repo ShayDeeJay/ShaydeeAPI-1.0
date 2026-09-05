@@ -32,21 +32,22 @@ public class ServerEvents {
 
     @SubscribeEvent
     public fun levelTickEvent(tickEvent: LevelTickEvent.Pre?) {
-        val level = tickEvent?.level as? ClientLevel ?: return
+        val level = tickEvent?.level as? ServerLevel ?: return
 
         val start = BlockPos.containing(8.0, -56.0, 8.0)
-        val endRange = BlockPos.containing(8.0, -60.0, 8.0)
+        val endRange = BlockPos(8, -61, 8)
 
-        level.hoverParticle(
-            ShaydeeAPIReg.ALTAR,
-            endRange.center,
-            radius = 2.0,
-            size = 0.2F,
-            colour = ColourHelpers.negativeRed,
-            staticSize = true,
-            lifetime = 30,
-            rotationSpeed = 0.2
-        )
+//        level.spiralParticle(
+//            ShaydeeAPIReg.MAGIC_INFERNO,
+//            endRange.center,
+//            spiralHeight = 4.0,
+//            spiralWidth = 2.0,
+//            size = 0.2F,
+//            staticSize = true,
+//            lifetime = 30,
+//            rotationSpeed = 0.2,
+//        )
+
         if(level.gameTime % 30 == 0L){
 
 //            level.standardParticle(

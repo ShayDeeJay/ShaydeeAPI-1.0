@@ -2,8 +2,10 @@ package org.shaydee.shaydeeapi.helpers
 
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.Util.prefix
+import net.minecraft.client.StringSplitter
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Style
 import net.minecraft.world.entity.player.Player
 import org.apache.logging.log4j.core.tools.picocli.CommandLine
 import org.openjdk.nashorn.tools.ShellFunctions.input
@@ -39,6 +41,8 @@ public object TextHelpers {
     public fun String.nameToId(): String =
         this.split(" ").joinToString("_") { it.lowercase() }
 
+    @JvmStatic
+    public fun String.capsFirst(): String = this.replaceFirstChar { it.uppercase() }
 
     @JvmStatic
     public fun withStyleComponentTrans(text: String, colour: Int, vararg args: Any?): Component =
@@ -95,11 +99,25 @@ public object TextHelpers {
     public fun displaySelectedKey(
         key: Int,
         prefixColour: Int = headerColour,
-        keyColour: Int = subHeaderColour
+        keyColour: Int = subHeaderColour,
     ): Component {
         val getKey = InputConstants.getKey(key, -1)
         val translatable = "text.shaydeeapi.hold_details"
         return displaySplitText(translatable, getKey.name, prefixColour, keyColour)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    /**
+     *Strings must be translatable
+     * */
+    public fun displaySelectedKey(
+        suffix: String,
+        prefixColour: Int = headerColour,
+        keyColour: Int = subHeaderColour,
+    ): Component {
+        val translatable = "text.shaydeeapi.hold_details"
+        return displaySplitText(translatable,suffix, prefixColour, keyColour)
     }
 
     @JvmStatic
@@ -129,6 +147,24 @@ public object TextHelpers {
         val new = withStyleComponentTrans(deco, keyColour)
 
         return withStyleComponentTrans(prefix, prefixColour, new)
+    }
+
+    @JvmStatic
+    public fun multiLineComponent(
+        body: String,
+        colour1: Int,
+        colour2: Int,
+        name: String = "",
+        maxWidth: Int = 200,
+        addSpacer: Boolean = false,
+    ): List<Component> = buildList {
+        val formattedText = StringSplitter { _, _ -> 10f }.splitLines(body, maxWidth, Style.EMPTY)
+        if (name.isNotEmpty()) {
+            add(withStyleComponent(name, colour1))
+            if(addSpacer) add(Component.literal(" "))
+        }
+
+        for (line in formattedText) add(withStyleComponent(line.string, colour2))
     }
 
 }
